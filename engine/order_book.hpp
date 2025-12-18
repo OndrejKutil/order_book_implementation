@@ -25,6 +25,9 @@ class OrderBook {
         void cancel_order(OrderID order_id);
 
         void match_orders();
+
+        double get_spread() const;
+
         void print_order_book() const;
         void print_order_logs() const;
 

@@ -140,21 +140,33 @@ void OrderBook::match_orders() {
         buy_order.quantity -= trade_quantity;
         sell_order.quantity -= trade_quantity;
 
-        OrderLog log {
-            incomming_order.order_id,
-            incomming_order.trader_id,
+        // Log both orders after the match
+        OrderLog buy_log {
+            buy_order.order_id,
+            buy_order.trader_id,
             price,
             trade_quantity,
-            incomming_order.side,
-            incomming_order.type,
-            (incomming_order.side == OrderSide::BUY) ? 
-                ((buy_order.quantity == 0) ? OrderStatus::FILLED : (buy_order.quantity < incomming_order.quantity) ? OrderStatus::PARTIALLY_FILLED : OrderStatus::PLACED) :
-                ((sell_order.quantity == 0) ? OrderStatus::FILLED : (sell_order.quantity < incomming_order.quantity) ? OrderStatus::PARTIALLY_FILLED : OrderStatus::PLACED),
-            0, // timestamp can be set to current time
-            std::string("Success")
+            OrderSide::BUY,
+            buy_order.type,
+            (buy_order.quantity == 0) ? OrderStatus::FILLED : OrderStatus::PARTIALLY_FILLED,
+            0,
+            std::string("Trade executed")
         };
 
-        order_logs.push_back(log);
+        OrderLog sell_log {
+            sell_order.order_id,
+            sell_order.trader_id,
+            price,
+            trade_quantity,
+            OrderSide::SELL,
+            sell_order.type,
+            (sell_order.quantity == 0) ? OrderStatus::FILLED : OrderStatus::PARTIALLY_FILLED,
+            0,
+            std::string("Trade executed")
+        };
+
+        order_logs.push_back(buy_log);
+        order_logs.push_back(sell_log);
 
         if (buy_order.quantity == 0) {
             buy_queue.erase(buy_queue.begin());
@@ -195,8 +207,8 @@ Quantity OrderBook::get_total_quantity(OrderSide side) const {
 
 void OrderBook::place_market_order(const Order& order) {
     if (order.side == OrderSide::BUY) {
-        if (sell_orders.empty() || get_total_quantity(OrderSide::SELL) < order.quantity) {
-            OrderLog log {
+        if (sell_orders.empty()) {
+            order_logs.push_back(OrderLog {
                 order.order_id,
                 order.trader_id,
                 0.0,
@@ -206,7 +218,8 @@ void OrderBook::place_market_order(const Order& order) {
                 OrderStatus::UNFILLED,
                 0,
                 std::string("No sell orders available")
-            };
+            });
+            return;
         }
     
         Quantity remaining_quantity = order.quantity;
@@ -254,8 +267,8 @@ void OrderBook::place_market_order(const Order& order) {
         });
 
     } else {
-        if (buy_orders.empty() || get_total_quantity(OrderSide::BUY) < order.quantity) {
-            OrderLog log {
+        if (buy_orders.empty()) {
+            order_logs.push_back(OrderLog {
                 order.order_id,
                 order.trader_id,
                 0.0,
@@ -265,7 +278,8 @@ void OrderBook::place_market_order(const Order& order) {
                 OrderStatus::UNFILLED,
                 0,
                 std::string("No buy orders available")
-            };
+            });
+            return;
         }
 
         Quantity remaining_quantity = order.quantity;
@@ -315,7 +329,66 @@ void OrderBook::place_market_order(const Order& order) {
 }
 
 void OrderBook::cancel_order(OrderID order_id) {
-    // TODO: Implement
+    // Search in buy orders
+    for (auto it = buy_orders.begin(); it != buy_orders.end(); ++it) {
+        auto& orders = it->second;
+        auto order_it = std::find_if(orders.begin(), orders.end(),
+                                     [order_id](const Order& o) { return o.order_id == order_id; });
+        if (order_it != orders.end()) {
+            orders.erase(order_it);
+            if (orders.empty()) {
+                buy_orders.erase(it);
+            }
+            order_logs.push_back(OrderLog {
+                order_id,
+                0,
+                it->first,
+                0,
+                OrderSide::BUY,
+                OrderType::LIMIT,
+                OrderStatus::CANCELED,
+                0,
+                std::string("Buy order canceled")
+            });
+            return;
+        }
+    }
+
+    // Search in sell orders
+    for (auto it = sell_orders.begin(); it != sell_orders.end(); ++it) {
+        auto& orders = it->second;
+        auto order_it = std::find_if(orders.begin(), orders.end(),
+                                     [order_id](const Order& o) { return o.order_id == order_id; });
+        if (order_it != orders.end()) {
+            orders.erase(order_it);
+            if (orders.empty()) {
+                sell_orders.erase(it);
+            }
+            order_logs.push_back(OrderLog {
+                order_id,
+                0,
+                it->first,
+                0,
+                OrderSide::SELL,
+                OrderType::LIMIT,
+                OrderStatus::CANCELED,
+                0,
+                std::string("Sell order canceled")
+            });
+            return;
+        }
+    }
+}
+
+double OrderBook::get_spread() const {
+    Price best_bid = get_best_bid();
+    Price best_ask = get_best_ask();
+
+    if (best_bid == 0.0 || best_ask == 0.0) {
+        return 0.0; // No spread if one side is empty
+    }
+
+    return best_ask - best_bid;
 }
 
 // test it now
@@ -323,14 +396,23 @@ int main() {
     OrderBook ob;
 
     ob.place_limit_order(Order{1, 1, 10.0, 20, OrderSide::SELL, OrderType::LIMIT, 1000});
-    ob.place_limit_order(Order{2, 2, 11, 30, OrderSide::SELL, OrderType::LIMIT, 1001});
+
+    ob.place_limit_order(Order{2, 2, 12.0, 25, OrderSide::BUY, OrderType::LIMIT, 1001});
+
+    ob.place_limit_order(Order{3, 3, 13.25, 15, OrderSide::SELL, OrderType::LIMIT, 1002});
+
+    ob.place_market_order(Order{4, 4, 0.0, 30, OrderSide::BUY, OrderType::MARKET, 1003});
 
     ob.print_order_book();
 
-    ob.place_market_order(Order{3, 3, 0.0, 40, OrderSide::BUY, OrderType::MARKET, 1002});
-
+    ob.place_market_order(Order{4, 4, 0.0, 30, OrderSide::BUY, OrderType::MARKET, 1003});
+    
     ob.print_order_logs();
     ob.print_order_book();
+
+    
+
+
 
     return 0;
 }

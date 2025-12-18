@@ -16,6 +16,7 @@ using OrderID = std::uint64_t;
 using TraderID = std::uint64_t;
 using Price = double;
 using Quantity = std::uint32_t;
+using Timestamp = std::uint64_t; // Unix timestamp in milliseconds
 
 struct Order {
     OrderID order_id;
@@ -24,15 +25,7 @@ struct Order {
     Quantity quantity;
     OrderSide side;
     OrderType type;
-    uint64_t timestamp; // Unix timestamp in milliseconds
-};
-
-struct Snapshot {
-    Price best_bid;
-    Price best_ask;
-    Quantity total_bid_quantity;
-    Quantity total_ask_quantity;
-    uint64_t timestamp; // Unix timestamp in milliseconds
+    Timestamp timestamp; // Unix timestamp in milliseconds
 };
 
 enum class OrderStatus {
@@ -52,6 +45,6 @@ struct OrderLog {
     OrderSide side;
     OrderType type;
     OrderStatus status;
-    uint64_t timestamp; // Unix timestamp in milliseconds
+    Timestamp timestamp; // Unix timestamp in milliseconds
     std::string details; // Additional details about the order event
 };
