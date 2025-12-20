@@ -72,6 +72,7 @@ class OrderBook {
         
         // Time management for simulations
         void advance_time(Timestamp new_time) { current_time = new_time; }
+        Timestamp get_current_time() const { return current_time; }
 
         void print_order_book() const;
         void print_order_logs() const;

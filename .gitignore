@@ -2,3 +2,7 @@
 *.exe
 build/
 *ps1
+.python-version
+.env
+.venv
+uv.lock
