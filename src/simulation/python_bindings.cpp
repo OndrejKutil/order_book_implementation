@@ -1,5 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include "simulator.hpp"
+#include "../book/types.hpp"
 
 namespace py = pybind11;
 
