@@ -18,70 +18,6 @@ Price OrderBook::get_best_ask() const {
     return sell_orders.begin()->first;
 }
 
-void OrderBook::print_order_book() const {
-    std::cout << "Order Book:" << std::endl;
-    std::cout << "Buy Orders:" << std::endl;
-    for (const auto& [price, orders] : buy_orders) {
-        for (const auto& order : orders) {
-            std::cout << "ID: " << order.order_id << ", Price: " << price
-                        << ", Quantity: " << order.quantity << std::endl;
-        }
-    }
-    std::cout << "Sell Orders:" << std::endl;
-    for (const auto& [price, orders] : sell_orders) {
-        for (const auto& order : orders) {
-            std::cout << "ID: " << order.order_id << ", Price: " << price
-                        << ", Quantity: " << order.quantity << std::endl;
-        }
-    }
-}
-
-void OrderBook::print_order_logs() const {
-    std::cout << "Order Logs:" << std::endl;
-    for (const auto& log : order_logs) {
-        std::cout << "Order ID: " << log.order_id
-                  << ", Trader ID: " << log.trader_id
-                  << ", Price: " << log.price
-                  << ", Quantity: " << log.quantity
-                  << ", Side: " << ((log.side == OrderSide::BUY) ? "BUY" : "SELL")
-                  << ", Type: " << ((log.type == OrderType::LIMIT) ? "LIMIT" : "MARKET")
-                  << ", Status: ";
-        switch (log.status) {
-            case OrderStatus::PLACED:
-                std::cout << "PLACED";
-                break;
-            case OrderStatus::PARTIALLY_FILLED:
-                std::cout << "PARTIALLY_FILLED";
-                break;
-            case OrderStatus::FILLED:
-                std::cout << "FILLED";
-                break;
-            case OrderStatus::UNFILLED:
-                std::cout << "UNFILLED";
-                break;
-            case OrderStatus::CANCELED:
-                std::cout << "CANCELED";
-                break;
-        }
-        std::cout << ", Details: " << log.details << std::endl;
-    }
-}
-
-void OrderBook::print_trade_logs() const {
-    std::cout << "Trade Logs:" << std::endl;
-    for (const auto& trade : trade_logs) {
-        std::cout << "Trade ID: " << trade.trade_id
-                  << ", Buy Order ID: " << trade.buy_order_id
-                  << ", Sell Order ID: " << trade.sell_order_id
-                  << ", Aggressor Side: " << ((trade.aggressor_side == OrderSide::BUY) ? "BUY" : "SELL")
-                  << ", Buyer ID: " << trade.buyer_id
-                  << ", Seller ID: " << trade.seller_id
-                  << ", Price: " << trade.price
-                  << ", Quantity: " << trade.quantity
-                  << std::endl;
-    }
-}
-
 void OrderBook::place_limit_order(const Order& order) {
     Order working_order = order;
     
@@ -564,6 +500,31 @@ Level1Data OrderBook::get_level1_data() const {
     return data;
 }
 
+Level2Data OrderBook::get_level2_data() const {
+    Level2Data data;
+    data.timestamp = current_time;
+    
+    // Bids
+    for (const auto& [price, orders] : buy_orders) {
+        Quantity level_quantity = 0;
+        for (const auto& order : orders) {
+            level_quantity += order.quantity;
+        }
+        data.bids.push_back(PriceLevel{price, level_quantity, static_cast<std::uint32_t>(orders.size())});
+    }
+    
+    // Asks
+    for (const auto& [price, orders] : sell_orders) {
+        Quantity level_quantity = 0;
+        for (const auto& order : orders) {
+            level_quantity += order.quantity;
+        }
+        data.asks.push_back(PriceLevel{price, level_quantity, static_cast<std::uint32_t>(orders.size())});
+    }
+    
+    return data;
+}
+
 Quantity OrderBook::get_depth_at_price(Price price, OrderSide side) const {
     Quantity total = 0;
     
@@ -687,4 +648,28 @@ void OrderBook::modify_order(OrderID order_id, Price new_price, Quantity new_qua
         current_time,
         std::string("Order modified")
     });
+}
+
+std::vector<Order> OrderBook::get_all_trader_orders(TraderID trader_id) const {
+    std::vector<Order> trader_orders;
+    
+    // Check buy orders
+    for (const auto& [price, orders] : buy_orders) {
+        for (const auto& order : orders) {
+            if (order.trader_id == trader_id) {
+                trader_orders.push_back(order);
+            }
+        }
+    }
+    
+    // Check sell orders
+    for (const auto& [price, orders] : sell_orders) {
+        for (const auto& order : orders) {
+            if (order.trader_id == trader_id) {
+                trader_orders.push_back(order);
+            }
+        }
+    }
+    
+    return trader_orders;
 }

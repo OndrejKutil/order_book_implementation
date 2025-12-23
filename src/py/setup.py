@@ -25,13 +25,13 @@ ext_modules = [
     Extension(
         'market_simulator',
         [
-            'src/simulation/python_bindings.cpp',
-            'src/simulation/simulator.cpp', 
-            'src/book/order_book.cpp'
+            '../book_implementation/simulation/python_bindings.cpp',
+            '../book_implementation/simulation/simulator.cpp', 
+            '../book_implementation/order_book/order_book.cpp'
         ],
         include_dirs=[
             pybind11.get_include(), 
-            'src'
+            '../book_implementation'
         ],
         language='c++',
         extra_compile_args=extra_compile_args,

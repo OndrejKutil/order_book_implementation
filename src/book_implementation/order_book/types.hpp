@@ -93,3 +93,10 @@ struct Level1Data {
     Price mid_price;
     Price spread;
 };
+
+struct Level2Data {
+    Timestamp timestamp;
+    std::vector<PriceLevel> bids;  // Sorted descending (best bid first)
+    std::vector<PriceLevel> asks;  // Sorted ascending (best ask first)
+};
+

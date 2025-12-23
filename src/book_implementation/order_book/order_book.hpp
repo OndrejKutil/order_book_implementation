@@ -41,7 +41,6 @@ class OrderBook {
 
         Price get_best_bid() const;
         Price get_best_ask() const;
-        bool is_match_possible() const;
         Quantity get_total_quantity(OrderSide side) const;
     
     public:
@@ -64,6 +63,9 @@ class OrderBook {
         Price get_mid_price() const;
         OrderBookSnapshot get_snapshot(Timestamp timestamp) const;
         Level1Data get_level1_data() const;
+        Level2Data get_level2_data() const;
+
+        std::vector<Order> get_all_trader_orders(TraderID trader_id) const;
         
         // Order book depth at specific price levels
         Quantity get_depth_at_price(Price price, OrderSide side) const;
@@ -73,10 +75,6 @@ class OrderBook {
         // Time management for simulations
         void advance_time(Timestamp new_time) { current_time = new_time; }
         Timestamp get_current_time() const { return current_time; }
-
-        void print_order_book() const;
-        void print_order_logs() const;
-        void print_trade_logs() const;
 
         void clear() {
             buy_orders.clear();
