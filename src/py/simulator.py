@@ -1,30 +1,65 @@
 import market_simulator
-from helper.orders import place_orders
+from helper.data_types import Orders, MarketData
+from helper.place_orders import place_orders
+from typing import Any, List
+from agents import (random_agent)
+from agents.agent import Agent
 
-sim = market_simulator.Simulator(start_time = 20)
+# ==============================================================
+# Simulation Setup
+# ==============================================================
 
-run_time = 100  # Total simulation time
-time_step = 1   # Time step for each iteration
+# Initialize the market simulator
+sim : market_simulator.Simulator = market_simulator.Simulator(start_time = 20)
 
-agents = [
+# Simulation parameters
+run_time : int = 100  # Total simulation time
+time_step : int = 1   # Time step for each iteration
 
+# Initialize agents
+agents : List[Agent] = [
+    random_agent.RandomAgent(name="RandomAgent1", id=1, id_range=range(1000, 8000))
 ]
+
+# ==============================================================
+# Main Simulation Loop
+# ==============================================================
 
 def main():
 
+    # Run the simulation loop
     while sim.get_current_time() < run_time:
 
-        level1_data = sim.get_current_level1_data()
+        # Gather market data for each tick
+        market_data : MarketData = MarketData(
+            snapshot=sim.get_current_snapshot(),
+            level1_data=sim.get_current_level1_data(),
+            level2_data=sim.get_current_level2_data()
+        )
 
+        # Let each agent update their state and decide on trades
         for agent in agents:
-            
-            # Let each agent decide on orders based on current market data
 
-            # Get orders from agent and place them
+            agent.update(market_data)
+            agent.decide_trades()
 
-            # place_orders(sim, orders)
+            orders : Orders = agent.submit_trades()
 
-            ...
+            # Place orders into the simulator queue
+            place_orders(sim, orders)
         
+        # Let simulator process orders (randomly chooses which trader to process first)
         sim.submit_pending_orders()
         sim.advance_time(time_step)
+
+    order_logs : Any = sim.get_order_logs()
+    trade_logs : Any = sim.get_trade_logs()
+
+    print("Simulation completed.")
+    print(f"Total Orders Processed: {len(order_logs)}")
+    print(f"Total Trades Executed: {len(trade_logs)}")
+
+    print("Order Logs Sample:", order_logs[:5])
+
+if __name__ == "__main__":
+    main()

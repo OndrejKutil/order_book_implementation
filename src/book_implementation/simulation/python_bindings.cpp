@@ -11,14 +11,21 @@ namespace py = pybind11;
 PYBIND11_MODULE(market_simulator, m) {
      m.doc() = "Order Book Simulator Plugin"; // Optional module docstring
 
-    // 1. Expose the OrderSide enum
+    // Expose the OrderSide enum
     // This allows using market_simulator.OrderSide.BUY in Python
      py::enum_<OrderSide>(m, "OrderSide", "Enumeration for order side (buy or sell)")
          .value("BUY", OrderSide::BUY, "Buy order")
          .value("SELL", OrderSide::SELL, "Sell order")
          .export_values();
 
-    // 2. Expose the Level1Data structure
+     // Expose the OrderType enum
+     // This allows using market_simulator.OrderType.LIMIT in Python
+     py::enum_<OrderType>(m, "OrderType", "Enumeration for order type (limit or market)")
+         .value("LIMIT", OrderType::LIMIT, "Limit order")
+         .value("MARKET", OrderType::MARKET, "Market order")
+         .export_values();
+
+    // Expose the Level1Data structure
     // We use def_readonly to make the fields accessible but not modifiable from Python
      py::class_<Level1Data>(m, "Level1Data", "Top-of-book market data snapshot")
           .def_readonly("bid_price", &Level1Data::bid_price, "Best bid price")
@@ -41,9 +48,16 @@ PYBIND11_MODULE(market_simulator, m) {
           });
 
      py::class_<OrderBookSnapshot>(m, "OrderBookSnapshot", "Full order book snapshot")
+          .def_readonly("timestamp", &OrderBookSnapshot::timestamp, "Timestamp of the snapshot")     
           .def_readonly("bids", &OrderBookSnapshot::bids, "List of bid orders")
           .def_readonly("asks", &OrderBookSnapshot::asks, "List of ask orders")
-          .def_readonly("timestamp", &OrderBookSnapshot::timestamp, "Timestamp of the snapshot")
+          .def_readonly("best_bid", &OrderBookSnapshot::best_bid, "Best bid price")
+          .def_readonly("best_ask", &OrderBookSnapshot::best_ask, "Best ask price")
+          .def_readonly("mid_price", &OrderBookSnapshot::mid_price, "Mid price between best bid and ask")
+          .def_readonly("spread", &OrderBookSnapshot::spread, "Bid-ask spread")
+          .def_readonly("total_bid_volume", &OrderBookSnapshot::total_bid_volume, "Total volume on the bid side")
+          .def_readonly("total_ask_volume", &OrderBookSnapshot::total_ask_volume, "Total volume on the ask side")
+          
           .def("__repr__", [](const OrderBookSnapshot &x) {
                return "<OrderBookSnapshot timestamp=" + std::to_string(x.timestamp) + ">";
           });
@@ -69,6 +83,34 @@ PYBIND11_MODULE(market_simulator, m) {
           .def_readonly("side", &PendingMarketOrder::side, "Order side (BUY or SELL)")
           .def("__repr__", [](const PendingMarketOrder &x) {
               return "<PendingMarketOrder order_id=" + std::to_string(x.order_id) + ">";
+          });
+
+     py::class_<OrderLog>(m, "OrderLog", "Log entry for an order event")
+          .def_readonly("order_id", &OrderLog::order_id, "Unique identifier for the order")
+          .def_readonly("trader_id", &OrderLog::trader_id, "Identifier of the trader")
+          .def_readonly("price", &OrderLog::price, "Price of the order")
+          .def_readonly("quantity", &OrderLog::quantity, "Quantity of the order")
+          .def_readonly("side", &OrderLog::side, "Order side (BUY or SELL)")
+          .def_readonly("type", &OrderLog::type, "Order type (LIMIT or MARKET)")
+          .def_readonly("status", &OrderLog::status, "Current status of the order")
+          .def_readonly("timestamp", &OrderLog::timestamp, "Timestamp of the order event")
+          .def_readonly("details", &OrderLog::details, "Additional details about the order event")
+          .def("__repr__", [](const OrderLog &x) {
+              return "<OrderLog order_id=" + std::to_string(x.order_id) + ">";
+          });
+
+     py::class_<Trade>(m, "TradeLog", "Structure representing a trade execution")
+          .def_readonly("trade_id", &Trade::trade_id, "Unique identifier for the trade")
+          .def_readonly("buy_order_id", &Trade::buy_order_id, "Order ID of the buy order")
+          .def_readonly("sell_order_id", &Trade::sell_order_id, "Order ID of the sell order")
+          .def_readonly("aggressor_side", &Trade::aggressor_side, "Side of the aggressor order")
+          .def_readonly("buyer_id", &Trade::buyer_id, "Identifier of the buyer trader")
+          .def_readonly("seller_id", &Trade::seller_id, "Identifier of the seller trader")
+          .def_readonly("price", &Trade::price, "Execution price of the trade")
+          .def_readonly("quantity", &Trade::quantity, "Quantity traded")
+          .def_readonly("timestamp", &Trade::timestamp, "Timestamp of the trade execution")
+          .def("__repr__", [](const Trade &x) {
+              return "<Trade trade_id=" + std::to_string(x.trade_id) + ">";
           });
 
      // 3. Expose the Simulator class

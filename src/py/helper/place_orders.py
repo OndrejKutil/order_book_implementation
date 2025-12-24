@@ -1,10 +1,5 @@
-from typing import List, Union
-from pydantic import BaseModel
 import market_simulator
-
-
-class Orders(BaseModel):
-    orders: List[Union[market_simulator.PendingOrder, market_simulator.PendingMarketOrder]]
+from helper.data_types import Orders
 
 def place_orders(sim : market_simulator.Simulator, orders : Orders):
     for order in orders.orders:
@@ -14,3 +9,4 @@ def place_orders(sim : market_simulator.Simulator, orders : Orders):
             sim.place_market_order(order)
         else:
             raise ValueError("Unknown order type")
+       
