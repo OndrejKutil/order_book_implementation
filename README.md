@@ -18,30 +18,32 @@ This is a small personal project where I’m building a simple **limit order boo
 
 ## Project tree
 
-```text
+```bash
 order_book_engine/
 ├─ docs/
-│  ├─ engine.md
-│  └─ setup.md
+│  ├─ engine.md                     # Engine internals documentation
+│  └─ setup.md                      # Setup and build instructions
 ├─ src/
 │  ├─ book_implementation/
 │  │  ├─ order_book/
-│  │  │  ├─ order_book.cpp
-│  │  │  ├─ order_book.hpp
-│  │  │  └─ types.hpp
+│  │  │  ├─ order_book.cpp          # Core order book matching engine
+│  │  │  ├─ order_book.hpp          # Order book interface
+│  │  │  └─ types.hpp               # Order and trade type definitions
 │  │  └─ simulation/
-│  │     ├─ python_bindings.cpp
-│  │     ├─ simulator.cpp
-│  │     └─ simulator.hpp
+│  │     ├─ python_bindings.cpp     # Pybind11 bindings for Python
+│  │     ├─ simulator.cpp           # Market simulation logic
+│  │     └─ simulator.hpp           # Simulator interface
 │  └─ py/
-│     ├─ setup.py
-│     ├─ simulator.py
-│     ├─ market_simulator.pyi
+│     ├─ setup.py                   # Build configuration for C++ extension
+│     ├─ simulator.py               # Main simulation runner
+│     ├─ market_simulator.pyi       # Type stubs for C++ extension
 │     ├─ helper/
-│     │  └─ orders.py
+│     │  ├─ data_types.py           # Pydantic models for orders and market data
+│     │  └─ place_orders.py         # Helper to submit orders to simulator
 │     └─ agents/
-│        └─ test.py
-├─ pyproject.toml
+│        ├─ agent.py                # Base agent class for trading strategies
+│        └─ random_agent.py         # Example agent with random trading behavior
+├─ pyproject.toml                   # Python project metadata
 └─ README.md
 ```
 
