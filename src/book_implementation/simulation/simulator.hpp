@@ -1,6 +1,11 @@
 #pragma once
 #include "../order_book/order_book.hpp"
 
+// =============================================
+// Simulator Class Definition
+// =============================================
+
+
 struct PendingOrder {
     OrderID order_id;
     TraderID trader_id;

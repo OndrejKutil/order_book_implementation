@@ -1,7 +1,7 @@
 import market_simulator
 from helper.data_types import Orders, MarketData
 from helper.place_orders import place_orders
-from typing import Any, List
+from typing import List
 from agents import (random_agent)
 from agents.agent import Agent
 
@@ -52,14 +52,16 @@ def main():
         sim.submit_pending_orders()
         sim.advance_time(time_step)
 
-    order_logs : Any = sim.get_order_logs()
-    trade_logs : Any = sim.get_trade_logs()
+    order_logs : List[market_simulator.OrderLog] = sim.get_order_logs()
+    trade_logs : List[market_simulator.TradeLog] = sim.get_trade_logs()
 
     print("Simulation completed.")
     print(f"Total Orders Processed: {len(order_logs)}")
     print(f"Total Trades Executed: {len(trade_logs)}")
 
     print("Order Logs Sample:", order_logs[:5])
+    print("Sample full first trade log:")
+    print(trade_logs[0].to_dict() if trade_logs else "No trades executed.")
 
 if __name__ == "__main__":
     main()

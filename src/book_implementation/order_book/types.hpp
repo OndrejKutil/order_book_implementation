@@ -3,6 +3,10 @@
 #include <cstdint>
 #include <vector>
 
+// =========================================================================
+// Order Book Data Types
+// =========================================================================
+
 enum class OrderSide {
     BUY,
     SELL
@@ -13,12 +17,22 @@ enum class OrderType {
     MARKET
 };
 
+enum class OrderStatus {
+    PLACED,
+    PARTIALLY_FILLED,
+    FILLED,
+    UNFILLED,
+    CANCELED
+};
+
 using OrderID = std::uint64_t;
 using TraderID = std::uint64_t;
 using Price = double;
 using Quantity = std::uint32_t;
 using Timestamp = std::uint64_t; // Unix timestamp in milliseconds
+using TradeID = std::uint64_t;
 
+// Structure representing an order in the order book
 struct Order {
     OrderID order_id;
     TraderID trader_id;
@@ -29,15 +43,7 @@ struct Order {
     Timestamp timestamp; // Unix timestamp in milliseconds
 };
 
-enum class OrderStatus {
-    PLACED,
-    PARTIALLY_FILLED,
-    FILLED,
-    UNFILLED,
-    CANCELED
-};
-
-
+// Log entry for an order event
 struct OrderLog {
     OrderID order_id;
     TraderID trader_id;
@@ -50,8 +56,7 @@ struct OrderLog {
     std::string details; // Additional details about the order event
 };
 
-using TradeID = std::uint64_t;
-
+// Log entry for a trade execution
 struct Trade {
     TradeID trade_id;
     OrderID buy_order_id;
@@ -71,6 +76,7 @@ struct PriceLevel {
     std::uint32_t order_count;
 };
 
+// Snapshot of the entire order book at a given time
 struct OrderBookSnapshot {
     Timestamp timestamp;
     std::vector<PriceLevel> bids;  // Sorted descending (best bid first)
@@ -94,6 +100,7 @@ struct Level1Data {
     Price spread;
 };
 
+// Level 2 market data (full order book depth)
 struct Level2Data {
     Timestamp timestamp;
     std::vector<PriceLevel> bids;  // Sorted descending (best bid first)

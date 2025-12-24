@@ -1,7 +1,7 @@
 """Type stubs for market_simulator C++ extension module."""
 
 from enum import Enum
-from typing import List
+from typing import Any, Dict, List
 
 class OrderSide(Enum):
     """Enumeration for order side (buy or sell)"""
@@ -29,6 +29,14 @@ class PriceLevel:
     """Total quantity at this price"""
     order_count: int
     """Number of orders at this price"""
+    
+    def __repr__(self) -> str:
+        """String representation of the price level"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        ...
 
 class Level1Data:
     """Top-of-book market data snapshot"""
@@ -46,6 +54,14 @@ class Level1Data:
     """Bid-ask spread"""
     timestamp: int
     """Timestamp of the data snapshot"""
+    
+    def __repr__(self) -> str:
+        """String representation of Level1Data"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        ...
 
 class Level2Data:
     """Level 2 market data snapshot"""
@@ -55,6 +71,14 @@ class Level2Data:
     """List of bid levels (sorted descending)"""
     asks: List[PriceLevel]
     """List of ask levels (sorted ascending)"""
+    
+    def __repr__(self) -> str:
+        """String representation of Level2Data"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        ...
 
 class OrderBookSnapshot:
     """Full order book snapshot"""
@@ -76,6 +100,14 @@ class OrderBookSnapshot:
     """Total bid volume"""
     total_ask_volume: int
     """Total ask volume"""
+    
+    def __repr__(self) -> str:
+        """String representation of OrderBookSnapshot"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        ...
 
 class Order:
     """Order structure"""
@@ -93,6 +125,14 @@ class Order:
     """Order type (LIMIT or MARKET)"""
     timestamp: int
     """Timestamp when order was created"""
+    
+    def __repr__(self) -> str:
+        """String representation of Order"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        ...
 
 class OrderLog:
     """Order log entry"""
@@ -114,9 +154,17 @@ class OrderLog:
     """Timestamp of the log entry"""
     details: str
     """Additional details about the order event"""
+    
+    def __repr__(self) -> str:
+        """String representation of OrderLog"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        ...
 
-class Trade:
-    """Trade structure"""
+class TradeLog:
+    """Structure representing a trade execution"""
     trade_id: int
     """Unique identifier for the trade"""
     buy_order_id: int
@@ -135,6 +183,14 @@ class Trade:
     """Execution quantity"""
     timestamp: int
     """Timestamp of the trade"""
+    
+    def __repr__(self) -> str:
+        """String representation of TradeLog"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        ...
 
 class PendingOrder:
     """Structure representing a pending order"""
@@ -168,6 +224,14 @@ class PendingOrder:
             side: BUY or SELL
         """
         ...
+    
+    def __repr__(self) -> str:
+        """String representation of PendingOrder"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        ...
 
 class PendingMarketOrder:
     """Structure representing a pending market order"""
@@ -196,6 +260,14 @@ class PendingMarketOrder:
             quantity: Number of shares/contracts
             side: BUY or SELL
         """
+        ...
+    
+    def __repr__(self) -> str:
+        """String representation of PendingMarketOrder"""
+        ...
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
         ...
 
 class Simulator:
@@ -322,7 +394,7 @@ class Simulator:
         """
         ...
     
-    def get_trade_logs(self) -> List[Trade]:
+    def get_trade_logs(self) -> List[TradeLog]:
         """
         Get the trade logs
         
