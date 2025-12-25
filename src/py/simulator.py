@@ -10,7 +10,26 @@ from agents.agent import Agent
 # ==============================================================
 
 # Initialize the market simulator
-sim : market_simulator.Simulator = market_simulator.Simulator(start_time = 20)
+sim : market_simulator.Simulator = market_simulator.Simulator(start_time = 0)
+
+# Create some initial orders to seed the market
+initial_orders : Orders = Orders(orders=
+[
+    market_simulator.PendingOrder(
+        order_id=1,
+        trader_id=0,
+        side=market_simulator.OrderSide.BUY,
+        quantity=100,
+        price=10.00
+    ),
+    market_simulator.PendingOrder(
+        order_id=2,
+        trader_id=0,
+        side=market_simulator.OrderSide.SELL,
+        quantity=100,
+        price=15.00
+    )
+])
 
 # Simulation parameters
 run_time : int = 100  # Total simulation time
@@ -26,6 +45,10 @@ agents : List[Agent] = [
 # ==============================================================
 
 def main():
+
+    # Start the simulator with a few initial orders to create market activity
+    place_orders(sim=sim, orders=initial_orders)
+    sim.submit_pending_orders()
 
     # Run the simulation loop
     while sim.get_current_time() < run_time:
